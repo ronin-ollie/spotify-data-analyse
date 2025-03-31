@@ -1,0 +1,91 @@
+#导入必要的库
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+plt.style.use('fivethirtyeight')
+pd.set_option('display.max_columns',None)
+pd.set_option('display.float_format','{:.1f}'.format)
+
+#加载数据集
+path_1 = "F:\sporti歌曲数据\spotify-2023.csv"
+sportify_df = pd.read_csv(path_1,encoding='latin-1')
+
+#数据清洗
+sportify_df['released_date'] = pd.to_datetime(sportify_df['released_year'].astype(str) + '-'+
+                                              sportify_df['released_month'].astype(str)+'-'+
+                                              sportify_df['released_day'].astype(str))
+
+#删除无用的数据
+sportify_df.drop(columns=['released_year','released_month','released_day'],inplace=True)
+sportify_df.drop(columns=['bpm','key','mode'],inplace=True)
+
+#播放歌曲最多的前十名歌手统计图
+artist_count = sportify_df['artist(s)_name'].value_counts().head(10)
+plt.figure(figsize=(10,4))
+sns.barplot(x = artist_count.index,y = artist_count.values)
+plt.title('top10 attists')
+plt.xlabel('artist')
+plt.ylabel('numers of hits')
+plt.xticks(rotation = 45)
+plt.tight_layout()
+plt.show()
+
+
+#浏览量前十的歌曲排行
+plt.figure(figsize=(12,8))
+sportify_df["streams"] = pd.to_numeric(sportify_df["streams"], errors="coerce")
+songs_top10 = sportify_df.sort_values('streams',ascending=False).head(10)
+sns.barplot(x = 'track_name',
+            y = 'streams',
+            data=songs_top10)
+plt.title('top10 songs')
+plt.xlabel('songs')
+plt.ylabel('streams')
+plt.xticks(rotation = 45)
+plt.tight_layout()
+plt.show()
+
+
+#歌手数量与歌曲流量之间的关系
+plt.figure(figsize=(10,6))
+sns.barplot(x = sportify_df.artist_count,
+            y = sportify_df.streams)
+plt.title('Relationship Between Most Streamed Songs And Platforms In 2023')
+plt.xlabel('artist_count')
+plt.ylabel('streams')
+plt.show()
+
+
+#流量与平台之间的关系
+plt.figure(figsize=(16,10))
+sns.regplot(x = 'streams',
+            y = 'in_spotify_playlists',
+            data = sportify_df,
+            scatter = True,
+            fit_reg = True)
+
+plt.title('Relationship Between Most Streamed Songs And Spotify Playlists In 2023')
+plt.xlabel('Streams')
+plt.ylabel('Number of Spotify Playlists')
+plt.xticks(rotation = 45)
+plt.tight_layout()
+plt.show()
+
+#不同标签之间的关系
+plt.figure(figsize = (12, 8))
+corr = sportify_df[['danceability_%',
+                    'valence_%',
+                    'energy_%',
+                    'acousticness_%',
+                    'instrumentalness_%',
+                    'liveness_%',
+                    'speechiness_%']].corr()
+sns.heatmap(corr,
+            annot = True,
+            cmap = 'coolwarm',
+            vmin =- 1, vmax = 1)
+plt.title('Correlation Heatmap of Audio Features')
+plt.tight_layout()
+plt.show()
